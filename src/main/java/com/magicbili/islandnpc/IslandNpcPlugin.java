@@ -8,7 +8,9 @@ import com.magicbili.islandnpc.config.ConfigManager;
 import com.magicbili.islandnpc.hologram.HologramProviderFactory;
 import com.magicbili.islandnpc.npc.NpcProviderFactory;
 import com.magicbili.islandnpc.providers.BentoBoxProvider;
+import com.magicbili.islandnpc.providers.SkylliaProvider;
 import com.magicbili.islandnpc.providers.SuperiorSkyblockProvider;
+import com.magicbili.islandnpc.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -37,7 +39,7 @@ public class IslandNpcPlugin extends JavaPlugin {
         // 初始化岛屿提供者
         islandProvider = initializeIslandProvider();
         if (islandProvider == null) {
-            getLogger().severe("未找到支持的岛屿插件！请安装 SuperiorSkyblock2 或 BentoBox");
+            getLogger().severe("未找到支持的岛屿插件！请安装 SuperiorSkyblock2、BentoBox 或 Skyllia");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
@@ -55,6 +57,11 @@ public class IslandNpcPlugin extends JavaPlugin {
         if (hologramProvider != null && npcProvider instanceof com.magicbili.islandnpc.api.AbstractNpcProvider) {
             ((com.magicbili.islandnpc.api.AbstractNpcProvider) npcProvider).setHologramProvider(hologramProvider);
         }
+        
+        // 初始化岛屿提供者的监听器（在 NPC 提供者初始化后）
+        if (islandProvider instanceof SkylliaProvider) {
+            ((SkylliaProvider) islandProvider).initializeListener();
+        }
 
         // 注册监听器
         registerListeners();
@@ -63,7 +70,7 @@ public class IslandNpcPlugin extends JavaPlugin {
         registerCommands();
         
         // 延迟加载所有已存在的 NPC
-        Bukkit.getScheduler().runTaskLater(this, () -> {
+        SchedulerUtil.runTaskLater(this, () -> {
             if (configManager.isDebugEnabled()) {
                 getLogger().info("[DEBUG] 开始加载已存在世界中的 NPC...");
             }
@@ -105,6 +112,7 @@ public class IslandNpcPlugin extends JavaPlugin {
     private IslandProvider initializeIslandProvider() {
         boolean hasSuperiorSkyblock = Bukkit.getPluginManager().getPlugin("SuperiorSkyblock2") != null;
         boolean hasBentoBox = Bukkit.getPluginManager().getPlugin("BentoBox") != null;
+        boolean hasSkyllia = Bukkit.getPluginManager().getPlugin("Skyllia") != null;
         
         if (hasSuperiorSkyblock) {
             getLogger().info("检测到 SuperiorSkyblock2，使用其作为岛屿提供者");
@@ -112,6 +120,9 @@ public class IslandNpcPlugin extends JavaPlugin {
         } else if (hasBentoBox) {
             getLogger().info("检测到 BentoBox，使用其作为岛屿提供者");
             return new BentoBoxProvider(this);
+        } else if (hasSkyllia) {
+            getLogger().info("检测到 Skyllia，使用其作为岛屿提供者");
+            return new SkylliaProvider(this);
         }
         
         return null;

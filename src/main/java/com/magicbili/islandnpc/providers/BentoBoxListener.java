@@ -2,6 +2,7 @@ package com.magicbili.islandnpc.providers;
 
 import com.magicbili.islandnpc.IslandNpcPlugin;
 import com.magicbili.islandnpc.api.NpcProvider;
+import com.magicbili.islandnpc.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
@@ -46,7 +47,7 @@ public class BentoBoxListener implements Listener {
     public void onIslandCreated(IslandCreatedEvent event) {
         Island island = event.getIsland();
         
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        SchedulerUtil.runTaskLater(plugin, () -> {
             if (island != null) {
                 Location center = island.getProtectionCenter();
                 if (center == null) {
@@ -90,7 +91,7 @@ public class BentoBoxListener implements Listener {
             debug("岛屿拥有者: " + island.getOwner());
             
             // 异步删除NPC，避免阻塞主线程
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            SchedulerUtil.runTask(plugin, () -> {
                 npcProvider.deleteNpc(islandUUID);
             });
         } else {

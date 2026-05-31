@@ -2,6 +2,7 @@ package com.magicbili.islandnpc.npc;
 
 import com.magicbili.islandnpc.IslandNpcPlugin;
 import com.magicbili.islandnpc.api.AbstractNpcProvider;
+import com.magicbili.islandnpc.utils.SchedulerUtil;
 import de.oliver.fancynpcs.api.FancyNpcsPlugin;
 import de.oliver.fancynpcs.api.Npc;
 import de.oliver.fancynpcs.api.NpcData;
@@ -24,14 +25,14 @@ public class FancyNpcProvider extends AbstractNpcProvider {
     
     private final Map<UUID, String> islandNpcs;
     private final Set<UUID> pendingSaves = new HashSet<>();
-    private org.bukkit.scheduler.BukkitTask saveTask = null;
+    private Runnable saveTask = null;
     
     public FancyNpcProvider(IslandNpcPlugin plugin) {
         super(plugin);
         this.islandNpcs = new HashMap<>();
         
         // 延迟加载NPC数据
-        org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, this::loadNpcData, 100L);
+        SchedulerUtil.runTaskLater(plugin, this::loadNpcData, 100L);
     }
     
     @Override
@@ -62,7 +63,7 @@ public class FancyNpcProvider extends AbstractNpcProvider {
             entityType = EntityType.VILLAGER;
         }
 
-        // 创建NPC
+        // 创建NPC（使用新 API）
         String npcName = "island_npc_" + islandUUID.toString().substring(0, 8);
         NpcData npcData = new NpcData(npcName, null, location);
         npcData.setType(entityType);
@@ -79,7 +80,13 @@ public class FancyNpcProvider extends AbstractNpcProvider {
         npc.create();
         npc.setSaveToFile(false);
         FancyNpcsPlugin.get().getNpcManager().registerNpc(npc);
-        npc.spawnForAll();
+        
+        // 在 Folia 环境下，需要在正确的区域调度器上生成 NPC
+        // 使用 runAtLocation 确保在 NPC 所在区域执行
+        final Npc finalNpc = npc;
+        SchedulerUtil.runAtLocation(plugin, location, () -> {
+            finalNpc.spawnForAll();
+        });
 
         // 保存映射关系
         islandNpcs.put(islandUUID, npc.getData().getId());
@@ -106,7 +113,16 @@ public class FancyNpcProvider extends AbstractNpcProvider {
         
         Npc npc = getNpc(islandUUID);
         if (npc != null) {
-            npc.removeForAll();
+            Location npcLocation = npc.getData().getLocation();
+            // 在 Folia 环境下，需要在正确的区域调度器上删除 NPC
+            if (npcLocation != null) {
+                final Npc finalNpc = npc;
+                SchedulerUtil.runAtLocation(plugin, npcLocation, () -> {
+                    finalNpc.removeForAll();
+                });
+            } else {
+                npc.removeForAll();
+            }
             FancyNpcsPlugin.get().getNpcManager().removeNpc(npc);
             debug("已销毁 NPC " + npc.getData().getId());
         }
@@ -130,7 +146,16 @@ public class FancyNpcProvider extends AbstractNpcProvider {
             return false;
         }
         
-        npc.removeForAll();
+        Location npcLocation = npc.getData().getLocation();
+        if (npcLocation != null) {
+            final Npc finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, npcLocation, () -> {
+                finalNpc.removeForAll();
+            });
+        } else {
+            npc.removeForAll();
+        }
+        
         hiddenNpcs.put(islandUUID, true);
         saveSingleNpcData(islandUUID);
         
@@ -146,7 +171,16 @@ public class FancyNpcProvider extends AbstractNpcProvider {
             return false;
         }
         
-        npc.spawnForAll();
+        Location npcLocation = npc.getData().getLocation();
+        if (npcLocation != null) {
+            final Npc finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, npcLocation, () -> {
+                finalNpc.spawnForAll();
+            });
+        } else {
+            npc.spawnForAll();
+        }
+        
         hiddenNpcs.put(islandUUID, false);
         saveSingleNpcData(islandUUID);
         
@@ -163,12 +197,28 @@ public class FancyNpcProvider extends AbstractNpcProvider {
         }
         
         boolean wasHidden = isNpcHidden(islandUUID);
-        npc.removeForAll();
+        Location oldLocation = npc.getData().getLocation();
+        
+        // 在旧位置的区域移除 NPC
+        if (oldLocation != null) {
+            final Npc finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, oldLocation, () -> {
+                finalNpc.removeForAll();
+            });
+        } else {
+            npc.removeForAll();
+        }
+        
+        // 更新位置
         npc.getData().setLocation(newLocation);
         npc.updateForAll();
         
+        // 在新位置的区域生成 NPC
         if (!wasHidden) {
-            npc.spawnForAll();
+            final Npc finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, newLocation, () -> {
+                finalNpc.spawnForAll();
+            });
         }
         
         saveSingleNpcData(islandUUID);
@@ -239,10 +289,23 @@ public class FancyNpcProvider extends AbstractNpcProvider {
             Npc npc = getNpc(islandUUID);
             if (npc != null) {
                 boolean wasHidden = isNpcHidden(islandUUID);
-                npc.removeForAll();
-                npc.updateForAll();
-                if (!wasHidden) {
-                    npc.spawnForAll();
+                Location npcLocation = npc.getData().getLocation();
+                
+                if (npcLocation != null) {
+                    final Npc finalNpc = npc;
+                    SchedulerUtil.runAtLocation(plugin, npcLocation, () -> {
+                        finalNpc.removeForAll();
+                        finalNpc.updateForAll();
+                        if (!wasHidden) {
+                            finalNpc.spawnForAll();
+                        }
+                    });
+                } else {
+                    npc.removeForAll();
+                    npc.updateForAll();
+                    if (!wasHidden) {
+                        npc.spawnForAll();
+                    }
                 }
             }
         }
@@ -299,16 +362,18 @@ public class FancyNpcProvider extends AbstractNpcProvider {
      * 多次调用会合并为一次保存，避免频繁 I/O
      */
     private void scheduleSave() {
-        if (saveTask != null && !saveTask.isCancelled()) {
-            // 已有保存任务，取消并重新安排
-            saveTask.cancel();
+        if (saveTask != null) {
+            // 已有保存任务，不需要重新安排（Folia 不支持取消任务）
+            return;
         }
         
         // 延迟 20 ticks (1秒) 后保存，期间的多次保存会被合并
-        saveTask = org.bukkit.Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+        saveTask = () -> {
             plugin.getConfigManager().saveNpcData();
             debug("[防抖保存] 已保存 NPC 数据到磁盘");
-        }, 20L);
+            saveTask = null;
+        };
+        SchedulerUtil.runTaskLaterAsynchronously(plugin, saveTask, 20L);
     }
     
     @Override

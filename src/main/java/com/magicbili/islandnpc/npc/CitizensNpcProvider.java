@@ -2,6 +2,7 @@ package com.magicbili.islandnpc.npc;
 
 import com.magicbili.islandnpc.IslandNpcPlugin;
 import com.magicbili.islandnpc.api.AbstractNpcProvider;
+import com.magicbili.islandnpc.utils.SchedulerUtil;
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.api.npc.NPCRegistry;
@@ -25,7 +26,7 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
     private final NPCRegistry npcRegistry;
     private final Map<UUID, Integer> islandNpcs;
     private final Set<UUID> pendingSaves = new HashSet<>();
-    private org.bukkit.scheduler.BukkitTask saveTask = null;
+    private Runnable saveTask = null;
     
     public CitizensNpcProvider(IslandNpcPlugin plugin) {
         super(plugin);
@@ -33,7 +34,7 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
         this.islandNpcs = new HashMap<>();
         
         // 延迟加载NPC数据
-        org.bukkit.Bukkit.getScheduler().runTaskLater(plugin, this::loadNpcData, 100L);
+        SchedulerUtil.runTaskLater(plugin, this::loadNpcData, 100L);
     }
     
     @Override
@@ -73,7 +74,11 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
             }
         }
 
-        npc.spawn(location);
+        // 在 Folia 环境下，需要在正确的区域调度器上生成 NPC
+        final NPC finalNpc = npc;
+        SchedulerUtil.runAtLocation(plugin, location, () -> {
+            finalNpc.spawn(location);
+        });
         
         // 设置持久化数据
         npc.data().setPersistent("islandUUID", islandUUID.toString());
@@ -127,7 +132,16 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
             return false;
         }
         
-        npc.despawn();
+        Location npcLocation = npc.getStoredLocation();
+        if (npcLocation != null && npc.isSpawned()) {
+            final NPC finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, npcLocation, () -> {
+                finalNpc.despawn();
+            });
+        } else if (npc.isSpawned()) {
+            npc.despawn();
+        }
+        
         hiddenNpcs.put(islandUUID, true);
         saveSingleNpcData(islandUUID);
         
@@ -148,6 +162,16 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
             return true;
         }
         
+        Location npcLocation = npc.getStoredLocation();
+        if (npcLocation != null) {
+            final NPC finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, npcLocation, () -> {
+                if (!finalNpc.isSpawned()) {
+                    finalNpc.spawn(npcLocation);
+                }
+            });
+        }
+        
         hiddenNpcs.put(islandUUID, false);
         saveSingleNpcData(islandUUID);
         
@@ -164,18 +188,35 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
         }
         
         boolean wasSpawned = npc.isSpawned();
-        if (wasSpawned) {
+        Location oldLocation = npc.getStoredLocation();
+        
+        // 在旧位置的区域移除 NPC
+        if (wasSpawned && oldLocation != null) {
+            final NPC finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, oldLocation, () -> {
+                if (finalNpc.isSpawned()) {
+                    finalNpc.despawn();
+                }
+            });
+        } else if (wasSpawned) {
             npc.despawn();
         }
         
+        // 更新位置
         npc.getStoredLocation().setX(newLocation.getX());
         npc.getStoredLocation().setY(newLocation.getY());
         npc.getStoredLocation().setZ(newLocation.getZ());
         npc.getStoredLocation().setYaw(newLocation.getYaw());
         npc.getStoredLocation().setPitch(newLocation.getPitch());
         
+        // 在新位置的区域生成 NPC
         if (wasSpawned && !isNpcHidden(islandUUID)) {
-            npc.spawn(npc.getStoredLocation());
+            final NPC finalNpc = npc;
+            SchedulerUtil.runAtLocation(plugin, newLocation, () -> {
+                if (!finalNpc.isSpawned()) {
+                    finalNpc.spawn(newLocation);
+                }
+            });
         }
         
         saveSingleNpcData(islandUUID);
@@ -246,8 +287,18 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
             NPC npc = getNpc(islandUUID);
             if (npc != null && npc.isSpawned()) {
                 Location loc = npc.getStoredLocation();
-                npc.despawn();
-                npc.spawn(loc);
+                if (loc != null) {
+                    final NPC finalNpc = npc;
+                    SchedulerUtil.runAtLocation(plugin, loc, () -> {
+                        if (finalNpc.isSpawned()) {
+                            finalNpc.despawn();
+                        }
+                        finalNpc.spawn(loc);
+                    });
+                } else {
+                    npc.despawn();
+                    npc.spawn(loc);
+                }
             }
         }
         debug("完成重新加载");
@@ -306,16 +357,18 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
      * 多次调用会合并为一次保存，避免频繁 I/O
      */
     private void scheduleSave() {
-        if (saveTask != null && !saveTask.isCancelled()) {
-            // 已有保存任务，取消并重新安排
-            saveTask.cancel();
+        if (saveTask != null) {
+            // 已有保存任务，不需要重新安排（Folia 不支持取消任务）
+            return;
         }
         
         // 延迟 20 ticks (1秒) 后保存，期间的多次保存会被合并
-        saveTask = org.bukkit.Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+        saveTask = () -> {
             plugin.getConfigManager().saveNpcData();
             debug("[防抖保存] 已保存 NPC 数据到磁盘");
-        }, 20L);
+            saveTask = null;
+        };
+        SchedulerUtil.runTaskLaterAsynchronously(plugin, saveTask, 20L);
     }
     
     @Override

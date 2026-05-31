@@ -4,6 +4,7 @@ import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.infernalsuite.asp.api.events.LoadSlimeWorldEvent;
 import com.magicbili.islandnpc.IslandNpcPlugin;
+import com.magicbili.islandnpc.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
@@ -137,7 +138,7 @@ public class WorldLoadListener implements Listener {
         debug("安排延迟任务: " + delayTicks + " ticks 后处理世界 " + worldName + 
               " (SlimeWorld: " + isSlimeWorld + ")");
         
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        SchedulerUtil.runTaskLater(plugin, () -> {
             try {
                 World world = Bukkit.getWorld(worldName);
                 if (world != null) {

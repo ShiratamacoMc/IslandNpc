@@ -7,6 +7,7 @@ import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.world.Dimension;
 import com.magicbili.islandnpc.IslandNpcPlugin;
 import com.magicbili.islandnpc.api.NpcProvider;
+import com.magicbili.islandnpc.utils.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
@@ -48,7 +49,7 @@ public class SuperiorSkyblockListener implements Listener {
                 island.getCenter(Dimension.getByName("NORMAL")).getWorld().getName() : "未知"));
         }
         
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+        SchedulerUtil.runTaskLater(plugin, () -> {
             if (island != null && npcProvider != null) {
                 debug("延迟任务执行: 开始为岛屿 " + island.getUniqueId() + " 创建 NPC");
                 Dimension normalDimension = Dimension.getByName("NORMAL");
@@ -94,7 +95,7 @@ public class SuperiorSkyblockListener implements Listener {
                 (island.getOwner() != null ? island.getOwner().getName() : "未知"));
             
             // 异步删除NPC，避免阻塞主线程
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            SchedulerUtil.runTask(plugin, () -> {
                 npcProvider.deleteNpc(island.getUniqueId());
             });
         } else {

@@ -6,7 +6,7 @@
 
     <groupId>com.magicbili</groupId>
     <artifactId>IslandNpc</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <packaging>jar</packaging>
 
     <name>IslandNpc</name>
@@ -19,8 +19,8 @@
     </developers>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -58,13 +58,25 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
+        
+        <!-- Skyllia Repository -->
+        <repository>
+            <id>euphyllia-repo</id>
+            <url>https://repo.euphyllia.moe/repository/maven-public/</url>
+        </repository>
+        
+        <!-- Paper Repository for Folia -->
+        <repository>
+            <id>papermc</id>
+            <url>https://repo.papermc.io/repository/maven-public/</url>
+        </repository>
     </repositories>
 
     <dependencies>
-        <!-- Spigot API -->
+        <!-- Folia API (包含 Paper 和 Spigot API) -->
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <groupId>dev.folia</groupId>
+            <artifactId>folia-api</artifactId>
             <version>1.20.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
@@ -99,27 +111,27 @@
         <dependency>
             <groupId>com.fancyinnovations</groupId>
             <artifactId>FancyDialogs</artifactId>
-            <version>0.0.32</version>
+            <version>1.2.0.55</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/FancyDialogs-0.0.32.jar</systemPath>
+            <systemPath>${project.basedir}/libs/FancyDialogs-1.2.0.55.jar</systemPath>
         </dependency>
 
-        <!-- FancyNpcs - Local Dependency -->
+        <!-- FancyNpcs - Local Dependency (需要 Java 25) -->
         <dependency>
             <groupId>de.oliver</groupId>
             <artifactId>FancyNpcs</artifactId>
-            <version>2.8.0.312</version>
+            <version>2.10.0.363</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/FancyNpcs-2.8.0.312.jar</systemPath>
+            <systemPath>${project.basedir}/libs/FancyNpcs-2.10.0.363.jar</systemPath>
         </dependency>
 
-        <!-- FancyHolograms - Local Dependency -->
+        <!-- FancyHolograms - Local Dependency (需要 Java 25) -->
         <dependency>
             <groupId>com.fancyinnovations</groupId>
             <artifactId>FancyHolograms</artifactId>
-            <version>2.8.0.160</version>
+            <version>2.10.0.190</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/FancyHolograms-2.8.0.160.jar</systemPath>
+            <systemPath>${project.basedir}/libs/FancyHolograms-2.10.0.190.jar</systemPath>
         </dependency>
 
         <!-- BentoBox - Local Dependency -->
@@ -138,6 +150,14 @@
             <version>2.9.8</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/libs/DecentHolograms-2.9.8.jar</systemPath>
+        </dependency>
+        
+        <!-- Skyllia API -->
+        <dependency>
+            <groupId>fr.euphyllia.skyllia</groupId>
+            <artifactId>api</artifactId>
+            <version>3.0-b1baf8f4</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     
@@ -165,12 +185,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.15.0</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
-                    <proc>none</proc>
-                    <!-- 确保包含 system scope 依赖 -->
+                    <source>25</source>
+                    <target>25</target>
+                    <release>25</release>
+                    <fork>true</fork>
+                    <executable>C:\jdk-25.0.1+8\bin\javac</executable>
                     <compilerArgs>
                         <arg>-verbose</arg>
                     </compilerArgs>
@@ -180,7 +201,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
