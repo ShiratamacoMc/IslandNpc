@@ -1,8 +1,5 @@
 package com.magicbili.islandnpc.commands;
 
-import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
-import com.bgsoftware.superiorskyblock.api.island.Island;
-import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
 import com.magicbili.islandnpc.IslandNpcPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -45,6 +42,8 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
                 return handleMove(sender);
             case "fixall":
                 return handleFixAll(sender);
+            case "cleanup":
+                return handleCleanup(sender);
             case "reload":
                 return handleReload(sender);
             case "create":
@@ -72,13 +71,17 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Island island = getPlayerIsland(player);
-        if (island == null) {
+        // 使用 IslandProvider 接口获取岛屿信息
+        if (!plugin.getIslandProvider().hasIsland(player)) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
             return true;
         }
 
-        UUID islandUUID = island.getUniqueId();
+        UUID islandUUID = plugin.getIslandProvider().getIslandUUID(player);
+        if (islandUUID == null) {
+            player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
+            return true;
+        }
         
         // 检查NPC提供者是否可用
         if (plugin.getNpcProvider() == null) {
@@ -108,13 +111,17 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Island island = getPlayerIsland(player);
-        if (island == null) {
+        // 使用 IslandProvider 接口获取岛屿信息
+        if (!plugin.getIslandProvider().hasIsland(player)) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
             return true;
         }
 
-        UUID islandUUID = island.getUniqueId();
+        UUID islandUUID = plugin.getIslandProvider().getIslandUUID(player);
+        if (islandUUID == null) {
+            player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
+            return true;
+        }
         
         // 检查NPC提供者是否可用
         if (plugin.getNpcProvider() == null) {
@@ -144,13 +151,17 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Island island = getPlayerIsland(player);
-        if (island == null) {
+        // 使用 IslandProvider 接口获取岛屿信息
+        if (!plugin.getIslandProvider().hasIsland(player)) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
             return true;
         }
 
-        UUID islandUUID = island.getUniqueId();
+        UUID islandUUID = plugin.getIslandProvider().getIslandUUID(player);
+        if (islandUUID == null) {
+            player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
+            return true;
+        }
         
         if (plugin.getNpcProvider() == null) {
             player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNPC提供者未初始化，请联系管理员");
@@ -180,13 +191,17 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Island island = getPlayerIsland(player);
-        if (island == null) {
+        // 使用 IslandProvider 接口获取岛屿信息
+        if (!plugin.getIslandProvider().hasIsland(player)) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
             return true;
         }
 
-        UUID islandUUID = island.getUniqueId();
+        UUID islandUUID = plugin.getIslandProvider().getIslandUUID(player);
+        if (islandUUID == null) {
+            player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
+            return true;
+        }
         Location newLocation = player.getLocation();
         
         if (plugin.getNpcProvider() == null) {
@@ -216,8 +231,14 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Island island = getPlayerIsland(player);
-        if (island == null) {
+        // 使用 IslandProvider 接口获取岛屿信息
+        if (!plugin.getIslandProvider().hasIsland(player)) {
+            player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
+            return true;
+        }
+
+        UUID islandUUID = plugin.getIslandProvider().getIslandUUID(player);
+        if (islandUUID == null) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
             return true;
         }
@@ -227,7 +248,6 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         
-        UUID islandUUID = island.getUniqueId();
         Location center = plugin.getIslandProvider().getIslandCenter(islandUUID);
         if (center == null) {
             player.sendMessage(plugin.getConfigManager().getPrefix() + "§c无法获取岛屿中心位置");
@@ -256,13 +276,17 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        Island island = getPlayerIsland(player);
-        if (island == null) {
+        // 使用 IslandProvider 接口获取岛屿信息
+        if (!plugin.getIslandProvider().hasIsland(player)) {
             player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
             return true;
         }
 
-        UUID islandUUID = island.getUniqueId();
+        UUID islandUUID = plugin.getIslandProvider().getIslandUUID(player);
+        if (islandUUID == null) {
+            player.sendMessage(plugin.getConfigManager().getMessage("no-island"));
+            return true;
+        }
         
         if (plugin.getNpcProvider() == null) {
             player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNPC提供者未初始化，请联系管理员");
@@ -290,15 +314,19 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         int fixed = 0;
         int total = 0;
         
+        // 遍历所有在线玩家，通过 IslandProvider 接口获取岛屿信息
         for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
-            SuperiorPlayer superiorPlayer = SuperiorSkyblockAPI.getPlayer(onlinePlayer);
-            if (superiorPlayer == null) continue;
+            // 检查玩家是否有岛屿
+            if (!plugin.getIslandProvider().hasIsland(onlinePlayer)) {
+                continue;
+            }
             
-            Island island = superiorPlayer.getIsland();
-            if (island == null) continue;
+            UUID islandUUID = plugin.getIslandProvider().getIslandUUID(onlinePlayer);
+            if (islandUUID == null) {
+                continue;
+            }
             
             total++;
-            UUID islandUUID = island.getUniqueId();
             
             // 检查NPC是否需要修复
             if (!plugin.getNpcProvider().hasNpc(islandUUID)) {
@@ -312,6 +340,49 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         }
         
         sender.sendMessage(plugin.getConfigManager().getMessage("fixall-complete", "total", String.valueOf(total), "fixed", String.valueOf(fixed)));
+        return true;
+    }
+
+    private boolean handleCleanup(CommandSender sender) {
+        if (!sender.hasPermission("islandnpc.admin")) {
+            sender.sendMessage(plugin.getConfigManager().getMessage("no-permission"));
+            return true;
+        }
+
+        if (plugin.getNpcProvider() == null || plugin.getIslandProvider() == null) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + "§c提供者未初始化，请联系管理员");
+            return true;
+        }
+
+        sender.sendMessage(plugin.getConfigManager().getMessage("cleanup-checking"));
+        
+        int deleted = 0;
+        int total = 0;
+        
+        // 获取所有已记录的岛屿NPC
+        java.util.Set<UUID> allNpcIslands = new java.util.HashSet<>(plugin.getNpcProvider().getAllIslandUUIDs());
+        total = allNpcIslands.size();
+        
+        if (total == 0) {
+            sender.sendMessage(plugin.getConfigManager().getMessage("cleanup-no-npcs"));
+            return true;
+        }
+        
+        // 检查每个岛屿是否仍然存在
+        for (UUID islandUUID : allNpcIslands) {
+            // 通过IslandProvider验证岛屿是否存在
+            Location center = plugin.getIslandProvider().getIslandCenter(islandUUID);
+            
+            if (center == null) {
+                // 岛屿不存在，删除NPC
+                if (plugin.getNpcProvider().deleteNpc(islandUUID)) {
+                    deleted++;
+                    plugin.getLogger().info("Cleaned up NPC for non-existent island: " + islandUUID);
+                }
+            }
+        }
+        
+        sender.sendMessage(plugin.getConfigManager().getMessage("cleanup-complete", "total", String.valueOf(total), "deleted", String.valueOf(deleted)));
         return true;
     }
 
@@ -333,15 +404,11 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(plugin.getConfigManager().getMessage("help-toggle"));
         sender.sendMessage(plugin.getConfigManager().getMessage("help-move"));
         sender.sendMessage(plugin.getConfigManager().getMessage("help-fixall"));
+        sender.sendMessage(plugin.getConfigManager().getMessage("help-cleanup"));
         sender.sendMessage(plugin.getConfigManager().getMessage("help-create"));
         sender.sendMessage(plugin.getConfigManager().getMessage("help-delete"));
         sender.sendMessage(plugin.getConfigManager().getMessage("help-reload"));
         sender.sendMessage(plugin.getConfigManager().getMessage("help-footer"));
-    }
-
-    private Island getPlayerIsland(Player player) {
-        SuperiorPlayer superiorPlayer = SuperiorSkyblockAPI.getPlayer(player);
-        return superiorPlayer.getIsland();
     }
 
     private boolean hasPermission(Player player, String permission) {
@@ -356,7 +423,7 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("hide", "show", "toggle", "move", "fixall", "create", "delete", "reload", "help");
+            List<String> subCommands = Arrays.asList("hide", "show", "toggle", "move", "fixall", "cleanup", "create", "delete", "reload", "help");
             String input = args[0].toLowerCase();
             
             for (String subCmd : subCommands) {

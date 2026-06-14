@@ -32,21 +32,30 @@ public class NpcProviderFactory {
         // 如果两个插件都找到了，使用配置文件中的设置
         if (hasCitizens && hasFancyNpcs) {
             if ("FANCYNPCS".equalsIgnoreCase(configuredProvider)) {
-                plugin.getLogger().info("检测到 Citizens 和 FancyNpcs，使用配置: FancyNpcs");
+                debug(plugin, "检测到 Citizens 和 FancyNpcs，使用配置: FancyNpcs");
                 return new FancyNpcProvider(plugin);
             } else {
-                plugin.getLogger().info("检测到 Citizens 和 FancyNpcs，使用配置: Citizens");
+                debug(plugin, "检测到 Citizens 和 FancyNpcs，使用配置: Citizens");
                 return new CitizensNpcProvider(plugin);
             }
         }
         
         // 只找到一个插件，自动使用
         if (hasFancyNpcs) {
-            plugin.getLogger().info("检测到 FancyNpcs，自动使用");
+            debug(plugin, "检测到 FancyNpcs，自动使用");
             return new FancyNpcProvider(plugin);
         } else {
-            plugin.getLogger().info("检测到 Citizens，自动使用");
+            debug(plugin, "检测到 Citizens，自动使用");
             return new CitizensNpcProvider(plugin);
+        }
+    }
+    
+    /**
+     * 输出debug日志
+     */
+    private static void debug(IslandNpcPlugin plugin, String message) {
+        if (plugin.getConfigManager().isDebugEnabled()) {
+            plugin.getLogger().info("[DEBUG] " + message);
         }
     }
     

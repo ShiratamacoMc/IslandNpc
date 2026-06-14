@@ -85,8 +85,17 @@ public class SuperiorSkyblockProvider implements IslandProvider {
         // 延迟初始化：确保 NpcProvider 已经创建
         if (listener == null) {
             listener = new SuperiorSkyblockListener(plugin, plugin.getNpcProvider());
-            plugin.getLogger().info("已初始化 SuperiorSkyblock 事件监听器");
+            debug("已初始化 SuperiorSkyblock 事件监听器");
         }
         return listener;
+    }
+    
+    /**
+     * 输出debug日志（仅在debug模式启用时）
+     */
+    private void debug(String message) {
+        if (plugin.getConfigManager().isDebugEnabled()) {
+            plugin.getLogger().info("[DEBUG] " + message);
+        }
     }
 }

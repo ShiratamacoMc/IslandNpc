@@ -75,6 +75,34 @@ public class FancyNpcProvider extends AbstractNpcProvider {
                 npcData.setSkin(skin);
             }
         }
+        
+        // 配置 FancyDialogs 交互动作（如果配置了 dialog-id）
+        String dialogId = plugin.getConfigManager().getDialogId();
+        if (dialogId != null && !dialogId.isEmpty() && !dialogId.equals("default_dialog")) {
+            // 检查 FancyDialogs 插件是否存在
+            if (org.bukkit.Bukkit.getPluginManager().getPlugin("FancyDialogs") != null) {
+                try {
+                    // 获取 open_dialog 动作
+                    de.oliver.fancynpcs.api.actions.NpcAction openDialogAction = 
+                        de.oliver.fancynpcs.api.FancyNpcsPlugin.get().getActionManager().getActionByName("open_dialog");
+                    
+                    if (openDialogAction != null) {
+                        // 添加右键点击时打开对话框的动作
+                        npcData.addAction(
+                            de.oliver.fancynpcs.api.actions.ActionTrigger.RIGHT_CLICK,
+                            0,  // 执行顺序
+                            openDialogAction,
+                            dialogId  // 对话框 ID
+                        );
+                        debug("为 NPC 配置了 FancyDialogs 交互: " + dialogId);
+                    } else {
+                        debug("未找到 open_dialog 动作，请确保 FancyDialogs 已正确加载");
+                    }
+                } catch (Exception e) {
+                    debug("配置 FancyDialogs 交互失败: " + e.getMessage());
+                }
+            }
+        }
 
         Npc npc = FancyNpcsPlugin.get().getNpcAdapter().apply(npcData);
         npc.create();
@@ -93,7 +121,7 @@ public class FancyNpcProvider extends AbstractNpcProvider {
         hiddenNpcs.put(islandUUID, false);
         saveSingleNpcData(islandUUID);
 
-        plugin.getLogger().info("创建 FancyNPC " + npc.getData().getId() + " 用于岛屿: " + islandUUID);
+        debug("创建 FancyNPC " + npc.getData().getId() + " 用于岛屿: " + islandUUID);
         
         // 调用创建后钩子
         afterNpcCreated(islandUUID, location);
@@ -134,7 +162,7 @@ public class FancyNpcProvider extends AbstractNpcProvider {
         plugin.getConfigManager().getNpcDataConfig().set("npcs." + islandUUID.toString(), null);
         plugin.getConfigManager().saveNpcData();
         
-        plugin.getLogger().info("删除岛屿NPC: " + islandUUID);
+        debug("删除岛屿NPC: " + islandUUID);
         return true;
     }
     
@@ -285,11 +313,19 @@ public class FancyNpcProvider extends AbstractNpcProvider {
     @Override
     public void reloadAllNpcs() {
         debug("重新加载所有NPC...");
+        
+        // 获取最新的 dialog-id 配置
+        String dialogId = plugin.getConfigManager().getDialogId();
+        boolean shouldConfigureDialog = dialogId != null && !dialogId.isEmpty() && !dialogId.equals("default_dialog");
+        
         for (UUID islandUUID : islandNpcs.keySet()) {
             Npc npc = getNpc(islandUUID);
             if (npc != null) {
                 boolean wasHidden = isNpcHidden(islandUUID);
                 Location npcLocation = npc.getData().getLocation();
+                
+                // 更新 NPC 的 dialog-id 动作
+                updateNpcDialogAction(npc, dialogId, shouldConfigureDialog);
                 
                 if (npcLocation != null) {
                     final Npc finalNpc = npc;
@@ -462,9 +498,7 @@ public class FancyNpcProvider extends AbstractNpcProvider {
             }
         }
         
-        if (loaded > 0) {
-            plugin.getLogger().info("加载了 " + loaded + " 个岛屿的NPC配置");
-        }
+        debug("加载了 " + loaded + " 个岛屿的NPC配置");
         debug("NPC数据加载完成");
     }
     
@@ -482,5 +516,51 @@ public class FancyNpcProvider extends AbstractNpcProvider {
             }
         }
         return null;
+    }
+    
+    /**
+     * 更新 NPC 的对话框动作
+     * @param npc NPC 实例
+     * @param dialogId 对话框 ID
+     * @param shouldConfigure 是否应该配置对话框动作
+     */
+    private void updateNpcDialogAction(Npc npc, String dialogId, boolean shouldConfigure) {
+        if (npc == null || npc.getData() == null) {
+            return;
+        }
+        
+        NpcData npcData = npc.getData();
+        
+        // 清除所有 RIGHT_CLICK 动作
+        npcData.setActions(de.oliver.fancynpcs.api.actions.ActionTrigger.RIGHT_CLICK, new java.util.ArrayList<>());
+        
+        // 如果需要配置对话框
+        if (shouldConfigure) {
+            // 检查 FancyDialogs 插件是否存在
+            if (org.bukkit.Bukkit.getPluginManager().getPlugin("FancyDialogs") != null) {
+                try {
+                    // 获取 open_dialog 动作
+                    de.oliver.fancynpcs.api.actions.NpcAction openDialogAction = 
+                        de.oliver.fancynpcs.api.FancyNpcsPlugin.get().getActionManager().getActionByName("open_dialog");
+                    
+                    if (openDialogAction != null) {
+                        // 添加右键点击时打开对话框的动作
+                        npcData.addAction(
+                            de.oliver.fancynpcs.api.actions.ActionTrigger.RIGHT_CLICK,
+                            0,  // 执行顺序
+                            openDialogAction,
+                            dialogId  // 对话框 ID
+                        );
+                        debug("已更新 NPC " + npcData.getId() + " 的对话框动作: " + dialogId);
+                    } else {
+                        debug("未找到 open_dialog 动作");
+                    }
+                } catch (Exception e) {
+                    debug("更新对话框动作失败: " + e.getMessage());
+                }
+            }
+        } else {
+            debug("已清除 NPC " + npcData.getId() + " 的对话框动作");
+        }
     }
 }

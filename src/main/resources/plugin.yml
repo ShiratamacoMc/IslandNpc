@@ -19,7 +19,7 @@ softdepend:
 commands:
   islandnpc:
     description: Main command for Island NPC plugin
-    usage: /islandnpc <hide|show|toggle|move|create|delete|reload|help>
+    usage: /islandnpc <hide|show|toggle|move|create|delete|fixall|cleanup|reload|help>
     aliases: [inpc, islnpc]
 
 permissions:

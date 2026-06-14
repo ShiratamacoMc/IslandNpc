@@ -93,13 +93,13 @@ public class IslandNpcPlugin extends JavaPlugin {
         // 清理全息图提供者
         if (hologramProvider != null) {
             hologramProvider.cleanup();
-            getLogger().info("已清理全息图");
+            debug("已清理全息图");
         }
         
         // 清理NPC提供者
         if (npcProvider != null) {
             npcProvider.cleanup();
-            getLogger().info("已保存 " + npcProvider.getProviderName() + " NPC 数据");
+            debug("已保存 " + npcProvider.getProviderName() + " NPC 数据");
         }
 
         getLogger().info("IslandNpc 插件已禁用！");
@@ -115,13 +115,13 @@ public class IslandNpcPlugin extends JavaPlugin {
         boolean hasSkyllia = Bukkit.getPluginManager().getPlugin("Skyllia") != null;
         
         if (hasSuperiorSkyblock) {
-            getLogger().info("检测到 SuperiorSkyblock2，使用其作为岛屿提供者");
+            debug("检测到 SuperiorSkyblock2，使用其作为岛屿提供者");
             return new SuperiorSkyblockProvider(this);
         } else if (hasBentoBox) {
-            getLogger().info("检测到 BentoBox，使用其作为岛屿提供者");
+            debug("检测到 BentoBox，使用其作为岛屿提供者");
             return new BentoBoxProvider(this);
         } else if (hasSkyllia) {
-            getLogger().info("检测到 Skyllia，使用其作为岛屿提供者");
+            debug("检测到 Skyllia，使用其作为岛屿提供者");
             return new SkylliaProvider(this);
         }
         
@@ -137,31 +137,9 @@ public class IslandNpcPlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(islandProvider.getEventListener(), this);
         }
         
-        // 注册 NPC 交互监听器
-        com.magicbili.islandnpc.listeners.NpcInteractionHandler handler = 
-            new com.magicbili.islandnpc.listeners.NpcInteractionHandler(this);
-        
-        if (Bukkit.getPluginManager().getPlugin("Citizens") != null) {
-            try {
-                getServer().getPluginManager().registerEvents(
-                    new com.magicbili.islandnpc.listeners.CitizensNpcInteractListener(this, handler), 
-                    this
-                );
-            } catch (Exception e) {
-                getLogger().warning("注册 Citizens 监听器失败: " + e.getMessage());
-            }
-        }
-        
-        if (Bukkit.getPluginManager().getPlugin("FancyNpcs") != null) {
-            try {
-                getServer().getPluginManager().registerEvents(
-                    new com.magicbili.islandnpc.listeners.FancyNpcsInteractListener(this, handler), 
-                    this
-                );
-            } catch (Exception e) {
-                getLogger().warning("注册 FancyNpcs 监听器失败: " + e.getMessage());
-            }
-        }
+        // 注意：NPC 交互由 FancyNpcs 的 open_dialog 动作处理
+        // TypeWriter 交互由 TypeWriter Extension 自己处理
+        // 不再需要自定义交互监听器
         
         // 世界加载监听器
         try {
@@ -193,7 +171,7 @@ public class IslandNpcPlugin extends JavaPlugin {
         if (npcProvider != null) {
             npcProvider.reloadAllNpcs();
         }
-        getLogger().info("插件配置已重载");
+        debug("插件配置已重载");
     }
 
     public static IslandNpcPlugin getInstance() {
@@ -210,6 +188,15 @@ public class IslandNpcPlugin extends JavaPlugin {
     
     public IslandProvider getIslandProvider() {
         return islandProvider;
+    }
+    
+    /**
+     * 输出debug日志（仅在debug模式启用时）
+     */
+    private void debug(String message) {
+        if (configManager != null && configManager.isDebugEnabled()) {
+            getLogger().info("[DEBUG] " + message);
+        }
     }
     
     /**
@@ -303,9 +290,7 @@ public class IslandNpcPlugin extends JavaPlugin {
             }
         }
         
-        if (loadedCount > 0) {
-            getLogger().info("成功加载了 " + loadedCount + " 个已加载世界的 NPC");
-        }
+        debug("成功加载了 " + loadedCount + " 个已加载世界的 NPC");
         if (configManager.isDebugEnabled()) {
             if (skippedSlimeWorld > 0) {
                 getLogger().info("[DEBUG] 跳过了 " + skippedSlimeWorld + " 个 SlimeWorld 岛屿（性能优化：直接跳过）");

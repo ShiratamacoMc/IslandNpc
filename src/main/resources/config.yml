@@ -23,9 +23,17 @@ npc:
   skin: ""
   
   # Dialog ID to open when right-clicking NPC (FancyDialogs)
-  # This is used when player has NO active TypeWriter quest/dialogue
-  # If TypeWriter Extension is installed, the plugin will automatically detect
-  # whether to trigger TypeWriter content or open this dialog
+  # 右键点击 NPC 时打开的对话框 ID（FancyDialogs）
+  # 
+  # 工作原理：
+  # - 使用 FancyNpcs 时：在创建 NPC 时自动配置 open_dialog 动作
+  # - FancyNpcs 会直接处理右键交互并打开对话框
+  # - TypeWriter 交互由 TypeWriter Extension 自己处理（优先级更高）
+  # 
+  # 注意：
+  # - 此功能仅在使用 FancyNpcs 作为 NPC 提供者时有效
+  # - 需要安装 FancyDialogs 插件
+  # - dialog-id 必须是 FancyDialogs 中已配置的对话框 ID
   dialog-id: "island_menu"
   
   # Spawn offset from island center
@@ -135,6 +143,9 @@ messages:
   reload-success: "&a配置已重新加载！"
   fixall-checking: "&e正在检查所有在线玩家的岛屿..."
   fixall-complete: "&a完成！检查了 {total} 个岛屿，修复了 {fixed} 个NPC。"
+  cleanup-checking: "&e正在检查所有已记录的岛屿NPC..."
+  cleanup-complete: "&a完成！检查了 {total} 个NPC，清理了 {deleted} 个不存在岛屿的NPC。"
+  cleanup-no-npcs: "&e没有找到任何已记录的岛屿NPC。"
   
   # 对话框消息
   dialog-not-configured: "&c对话框ID未配置！"
@@ -148,6 +159,7 @@ messages:
   help-toggle: "&e/islandnpc toggle &7- 切换你的岛屿NPC可见性"
   help-move: "&e/islandnpc move &7- 将NPC移动到你的位置"
   help-fixall: "&e/islandnpc fixall &7- 修复在线玩家缺失的NPC（管理员）"
+  help-cleanup: "&e/islandnpc cleanup &7- 清理已不存在岛屿的NPC（管理员）"
   help-create: "&e/islandnpc create &7- 创建岛屿NPC（管理员）"
   help-delete: "&e/islandnpc delete &7- 删除岛屿NPC（管理员）"
   help-reload: "&e/islandnpc reload &7- 重载配置并更新NPC（管理员）"

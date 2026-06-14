@@ -17,6 +17,8 @@ public class ConfigManager {
     private FileConfiguration config;
     private FileConfiguration npcDataConfig;
     private File npcDataFile;
+    private FileConfiguration langConfig;
+    private String currentLanguage;
 
     public ConfigManager(IslandNpcPlugin plugin) {
         this.plugin = plugin;
@@ -26,6 +28,9 @@ public class ConfigManager {
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
         config = plugin.getConfig();
+        
+        // Load language file
+        loadLanguage();
         
         // 检查并更新配置文件版本
         checkAndUpdateConfig();
@@ -39,6 +44,23 @@ public class ConfigManager {
             }
         }
         npcDataConfig = YamlConfiguration.loadConfiguration(npcDataFile);
+    }
+    
+    /**
+     * Load language file based on config
+     */
+    private void loadLanguage() {
+        currentLanguage = config.getString("language", "en");
+        String langFileName = "lang_" + currentLanguage + ".yml";
+        File langFile = new File(plugin.getDataFolder(), langFileName);
+        
+        // Save default language files if they don't exist
+        if (!langFile.exists()) {
+            plugin.saveResource(langFileName, false);
+        }
+        
+        langConfig = YamlConfiguration.loadConfiguration(langFile);
+        plugin.getLogger().info("Loaded language: " + currentLanguage);
     }
     
     /**
@@ -72,7 +94,7 @@ public class ConfigManager {
             plugin.getLogger().warning("这可能会导致问题。建议删除配置文件并重新生成。");
         } else {
             // 版本匹配，无需更新
-            plugin.getLogger().info("配置文件版本: " + configVersion + " (最新)");
+            debug("配置文件版本: " + configVersion + " (最新)");
         }
     }
     
@@ -80,7 +102,7 @@ public class ConfigManager {
      * 从版本0（无版本号）迁移配置
      */
     private void migrateFromVersion0() {
-        plugin.getLogger().info("正在从版本 0 迁移配置...");
+        debug("正在从版本 0 迁移配置...");
         
         // 保存用户的所有自定义值
         File configFile = new File(plugin.getDataFolder(), "config.yml");
@@ -359,18 +381,18 @@ public class ConfigManager {
     }
 
     /**
-     * Get a message from config with color codes translated
-     * @param key Message key from config
+     * Get a message from language file with color codes translated
+     * @param key Message key from language file
      * @return Colored message
      */
     public String getMessage(String key) {
-        String message = config.getString("messages." + key, key);
+        String message = langConfig.getString(key, key);
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     /**
      * Get a message with prefix
-     * @param key Message key from config
+     * @param key Message key from language file
      * @return Prefixed colored message
      */
     public String getMessageWithPrefix(String key) {
@@ -379,7 +401,7 @@ public class ConfigManager {
 
     /**
      * Get a message with placeholder replacements
-     * @param key Message key from config
+     * @param key Message key from language file
      * @param replacements Placeholder replacements (key, value pairs)
      * @return Colored message with replacements
      */
@@ -415,5 +437,14 @@ public class ConfigManager {
      */
     public boolean isDebugEnabled() {
         return config.getBoolean("debug", false);
+    }
+    
+    /**
+     * 输出debug日志（仅在debug模式启用时）
+     */
+    private void debug(String message) {
+        if (isDebugEnabled()) {
+            plugin.getLogger().info("[DEBUG] " + message);
+        }
     }
 }

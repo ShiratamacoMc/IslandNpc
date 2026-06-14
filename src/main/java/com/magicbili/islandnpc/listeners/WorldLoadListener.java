@@ -1,7 +1,5 @@
 package com.magicbili.islandnpc.listeners;
 
-import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
-import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.infernalsuite.asp.api.events.LoadSlimeWorldEvent;
 import com.magicbili.islandnpc.IslandNpcPlugin;
 import com.magicbili.islandnpc.utils.SchedulerUtil;
@@ -108,12 +106,27 @@ public class WorldLoadListener implements Listener {
     
     /**
      * 检查世界是否是岛屿世界
+     * 通过检查配置文件中是否有该世界的岛屿数据来判断
      */
     private boolean isIslandWorld(World world) {
         try {
-            Island island = SuperiorSkyblockAPI.getIslandAt(world.getSpawnLocation());
-            return island != null;
+            org.bukkit.configuration.ConfigurationSection section = 
+                plugin.getConfigManager().getNpcDataConfig().getConfigurationSection("npcs");
+            
+            if (section == null) {
+                return false;
+            }
+            
+            // 检查是否有任何岛屿在这个世界中
+            for (String key : section.getKeys(false)) {
+                String worldName = section.getString(key + ".location.world");
+                if (worldName != null && worldName.equals(world.getName())) {
+                    return true;
+                }
+            }
+            return false;
         } catch (Exception e) {
+            debug("检查岛屿世界时出错: " + e.getMessage());
             return false;
         }
     }

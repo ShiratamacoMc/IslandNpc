@@ -19,7 +19,7 @@ public class HologramProviderFactory {
     public static HologramProvider createProvider(IslandNpcPlugin plugin) {
         // 检查配置是否启用全息图
         if (!plugin.getConfigManager().getConfig().getBoolean("npc.hologram.enabled", true)) {
-            plugin.getLogger().info("全息图功能已在配置中禁用");
+            debug(plugin, "全息图功能已在配置中禁用");
             return null;
         }
         
@@ -37,21 +37,30 @@ public class HologramProviderFactory {
         // 如果两个插件都找到了，使用配置文件中的设置
         if (hasFancyHolograms && hasDecentHolograms) {
             if ("DECENTHOLOGRAMS".equalsIgnoreCase(configuredProvider)) {
-                plugin.getLogger().info("检测到 FancyHolograms 和 DecentHolograms，使用配置: DecentHolograms");
+                debug(plugin, "检测到 FancyHolograms 和 DecentHolograms，使用配置: DecentHolograms");
                 return new DecentHologramsProvider(plugin);
             } else {
-                plugin.getLogger().info("检测到 FancyHolograms 和 DecentHolograms，使用配置: FancyHolograms");
+                debug(plugin, "检测到 FancyHolograms 和 DecentHolograms，使用配置: FancyHolograms");
                 return new FancyHologramsProvider(plugin);
             }
         }
         
         // 只找到一个插件，自动使用
         if (hasFancyHolograms) {
-            plugin.getLogger().info("检测到 FancyHolograms，自动使用");
+            debug(plugin, "检测到 FancyHolograms，自动使用");
             return new FancyHologramsProvider(plugin);
         } else {
-            plugin.getLogger().info("检测到 DecentHolograms，自动使用");
+            debug(plugin, "检测到 DecentHolograms，自动使用");
             return new DecentHologramsProvider(plugin);
+        }
+    }
+    
+    /**
+     * 输出debug日志
+     */
+    private static void debug(IslandNpcPlugin plugin, String message) {
+        if (plugin.getConfigManager().isDebugEnabled()) {
+            plugin.getLogger().info("[DEBUG] " + message);
         }
     }
 }

@@ -89,7 +89,7 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
         hiddenNpcs.put(islandUUID, false);
         saveSingleNpcData(islandUUID);
 
-        plugin.getLogger().info("创建 Citizens NPC #" + npc.getId() + " 用于岛屿: " + islandUUID);
+        debug("创建 Citizens NPC #" + npc.getId() + " 用于岛屿: " + islandUUID);
         
         // 调用创建后钩子
         afterNpcCreated(islandUUID, location);
@@ -120,7 +120,7 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
         plugin.getConfigManager().getNpcDataConfig().set("npcs." + islandUUID.toString(), null);
         plugin.getConfigManager().saveNpcData();
         
-        plugin.getLogger().info("删除岛屿NPC: " + islandUUID);
+        debug("删除岛屿NPC: " + islandUUID);
         return true;
     }
     
@@ -455,9 +455,7 @@ public class CitizensNpcProvider extends AbstractNpcProvider {
             }
         }
         
-        if (loaded > 0) {
-            plugin.getLogger().info("加载了 " + loaded + " 个岛屿的NPC配置");
-        }
+        debug("加载了 " + loaded + " 个岛屿的NPC配置");
         debug("NPC数据加载完成");
     }
 }
