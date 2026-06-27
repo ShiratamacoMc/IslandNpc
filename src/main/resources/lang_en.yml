@@ -1,0 +1,58 @@
+# IslandNpc Language File - English
+# Plugin messages and text displayed to players
+
+# Message prefix
+prefix: "&8[&6IslandNPC&8]&r "
+
+# Command messages
+npc-hidden: "&aIsland NPC has been hidden!"
+npc-shown: "&aIsland NPC is now visible!"
+npc-toggled-hidden: "&aIsland NPC toggled to hidden!"
+npc-toggled-visible: "&aIsland NPC toggled to visible!"
+npc-moved: "&aIsland NPC has been moved to your location!"
+npc-created: "&aIsland NPC has been created!"
+npc-deleted: "&aIsland NPC has been deleted!"
+npc-already-hidden: "&eYour island NPC is already hidden!"
+npc-already-visible: "&eYour island NPC is already visible!"
+npc-not-found: "&cNPC not found for your island!"
+npc-create-failed: "&cFailed to create island NPC!"
+
+# Error messages
+no-island: "&cYou don't have an island!"
+no-permission: "&cYou don't have permission to use this command."
+players-only: "&cThis command can only be used by players."
+unknown-command: "&cUnknown subcommand. Use /islandnpc help for help"
+provider-not-initialized: "&cNPC provider not initialized, please contact an administrator"
+providers-not-initialized: "&cProviders not initialized, please contact an administrator"
+island-center-not-found: "&cUnable to get island center location"
+
+# Admin messages
+reload-success: "&aConfiguration has been reloaded!"
+fixall-checking: "&eChecking all online players' islands..."
+fixall-complete: "&aDone! Checked {total} islands, fixed {fixed} NPCs."
+cleanup-checking: "&eChecking all recorded island NPCs..."
+cleanup-complete: "&aDone! Checked {total} NPCs, cleaned up {deleted} NPCs for non-existent islands."
+cleanup-no-npcs: "&eNo recorded island NPCs found."
+
+# Dialog messages
+dialog-not-configured: "&cDialog ID not configured!"
+dialog-not-found: "&cDialog not found: {id}"
+npc-clicked: "&aYou clicked the island NPC!"
+
+# Hologram default text
+hologram-default-title: "&b&l{owner}'s Island"
+hologram-default-subtitle: "&7Right-click to interact"
+
+# Help messages
+help-header: "&6&l========== Island NPC Commands =========="
+help-hide: "&e/islandnpc hide &7- Hide your island NPC"
+help-show: "&e/islandnpc show &7- Show your island NPC"
+help-toggle: "&e/islandnpc toggle &7- Toggle your island NPC visibility"
+help-move: "&e/islandnpc move &7- Move NPC to your location"
+help-fixall: "&e/islandnpc fixall &7- Fix missing NPCs for online players (Admin)"
+help-cleanup: "&e/islandnpc cleanup &7- Clean up NPCs for non-existent islands (Admin)"
+help-create: "&e/islandnpc create &7- Create island NPC (Admin)"
+help-delete: "&e/islandnpc delete &7- Delete island NPC (Admin)"
+help-reload: "&e/islandnpc reload &7- Reload config and update NPCs (Admin)"
+help-help: "&e/islandnpc help &7- Show this help message"
+help-footer: "&6&l========================================"

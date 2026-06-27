@@ -75,6 +75,15 @@ public class IslandNpcPlugin extends JavaPlugin {
                 getLogger().info("[DEBUG] 开始加载已存在世界中的 NPC...");
             }
             loadAllExistingNpcs();
+            
+            // 启动后自动清理孤立的NPC
+            if (configManager.isDebugEnabled()) {
+                getLogger().info("[DEBUG] 开始清理孤立的NPC...");
+            }
+            int[] result = cleanupOrphanedNpcs();
+            if (result[1] > 0) {
+                getLogger().info("启动清理：检查了 " + result[0] + " 个NPC，清理了 " + result[1] + " 个孤立NPC");
+            }
         }, 100L);
 
         // 统一输出启用信息
@@ -302,6 +311,50 @@ public class IslandNpcPlugin extends JavaPlugin {
                 getLogger().info("[DEBUG] 没有需要加载的 NPC");
             }
         }
+    }
+    
+    /**
+     * 清理孤立的NPC（岛屿已删除但NPC数据仍存在）
+     * 
+     * @return int数组：[0]=检查的总数, [1]=删除的数量
+     */
+    public int[] cleanupOrphanedNpcs() {
+        if (npcProvider == null || islandProvider == null) {
+            debug("提供者未初始化，无法执行清理");
+            return new int[]{0, 0};
+        }
+        
+        int deleted = 0;
+        int total = 0;
+        
+        // 获取所有已记录的岛屿NPC
+        java.util.Set<java.util.UUID> allNpcIslands = new java.util.HashSet<>(npcProvider.getAllIslandUUIDs());
+        total = allNpcIslands.size();
+        
+        if (total == 0) {
+            debug("没有找到任何已记录的岛屿NPC");
+            return new int[]{0, 0};
+        }
+        
+        debug("开始检查 " + total + " 个岛屿NPC...");
+        
+        // 检查每个岛屿是否仍然存在
+        for (java.util.UUID islandUUID : allNpcIslands) {
+            // 使用 IslandProvider 的 islandExists 方法验证岛屿是否存在
+            if (!islandProvider.islandExists(islandUUID)) {
+                // 岛屿不存在，删除NPC
+                debug("岛屿 " + islandUUID + " 不存在，删除其NPC");
+                if (npcProvider.deleteNpc(islandUUID)) {
+                    deleted++;
+                    getLogger().info("已清理不存在岛屿的NPC: " + islandUUID);
+                } else {
+                    getLogger().warning("删除孤立NPC失败: " + islandUUID);
+                }
+            }
+        }
+        
+        debug("清理完成：检查了 " + total + " 个NPC，删除了 " + deleted + " 个孤立NPC");
+        return new int[]{total, deleted};
     }
 
 }

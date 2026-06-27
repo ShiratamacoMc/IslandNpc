@@ -190,8 +190,8 @@ public class FancyHologramsProvider implements HologramProvider {
     
     @Override
     public void cleanup() {
-        // 清理所有全息图
-        for (String id : hologramIds.keySet()) {
+        // 清理所有全息图 - 使用副本避免ConcurrentModificationException
+        for (String id : hologramIds.keySet().toArray(new String[0])) {
             deleteHologram(id);
         }
         hologramIds.clear();

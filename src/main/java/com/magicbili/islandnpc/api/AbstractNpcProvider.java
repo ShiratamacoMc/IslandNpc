@@ -51,7 +51,10 @@ public abstract class AbstractNpcProvider implements NpcProvider {
                 // 从配置读取全息图文本行
                 java.util.List<String> lines = plugin.getConfigManager().getConfig().getStringList("npc.hologram.lines");
                 if (lines.isEmpty()) {
-                    lines = java.util.List.of("§b§l" + ownerName + " 的岛屿", "§7右键点击交互");
+                    // 使用语言文件的默认文本
+                    String title = plugin.getConfigManager().getMessage("hologram-default-title", "owner", ownerName);
+                    String subtitle = plugin.getConfigManager().getMessage("hologram-default-subtitle");
+                    lines = java.util.List.of(title, subtitle);
                 }
                 
                 // 替换占位符

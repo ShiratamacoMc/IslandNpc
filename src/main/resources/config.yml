@@ -5,6 +5,10 @@
 # This is used to automatically update the config file when the plugin updates
 config-version: 2
 
+# Language Settings
+# Available languages: en (English), zh (Chinese)
+language: "zh"
+
 # NPC Settings
 npc:
   # NPC provider: CITIZENS, FANCYNPCS

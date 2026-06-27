@@ -1,0 +1,58 @@
+# IslandNpc 语言文件 - 简体中文
+# 插件消息和显示给玩家的文本
+
+# 消息前缀
+prefix: "&8[&6岛屿NPC&8]&r "
+
+# 命令消息
+npc-hidden: "&a岛屿NPC已隐藏！"
+npc-shown: "&a岛屿NPC现在可见！"
+npc-toggled-hidden: "&a岛屿NPC已切换为隐藏状态！"
+npc-toggled-visible: "&a岛屿NPC已切换为可见状态！"
+npc-moved: "&a岛屿NPC已移动到你的位置！"
+npc-created: "&a岛屿NPC已创建！"
+npc-deleted: "&a岛屿NPC已删除！"
+npc-already-hidden: "&e你的岛屿NPC已经是隐藏状态了！"
+npc-already-visible: "&e你的岛屿NPC已经是可见状态了！"
+npc-not-found: "&c未找到你岛屿的NPC！"
+npc-create-failed: "&c创建岛屿NPC失败！"
+
+# 错误消息
+no-island: "&c你没有岛屿！"
+no-permission: "&c你没有权限使用此命令。"
+players-only: "&c此命令只能由玩家使用。"
+unknown-command: "&c未知的子命令。使用 /islandnpc help 查看帮助"
+provider-not-initialized: "&cNPC提供者未初始化，请联系管理员"
+providers-not-initialized: "&c提供者未初始化，请联系管理员"
+island-center-not-found: "&c无法获取岛屿中心位置"
+
+# 管理员消息
+reload-success: "&a配置已重新加载！"
+fixall-checking: "&e正在检查所有在线玩家的岛屿..."
+fixall-complete: "&a完成！检查了 {total} 个岛屿，修复了 {fixed} 个NPC。"
+cleanup-checking: "&e正在检查所有已记录的岛屿NPC..."
+cleanup-complete: "&a完成！检查了 {total} 个NPC，清理了 {deleted} 个不存在岛屿的NPC。"
+cleanup-no-npcs: "&e没有找到任何已记录的岛屿NPC。"
+
+# 对话框消息
+dialog-not-configured: "&c对话框ID未配置！"
+dialog-not-found: "&c未找到对话框: {id}"
+npc-clicked: "&a你点击了岛屿NPC！"
+
+# 全息图默认文本
+hologram-default-title: "&b&l{owner} 的岛屿"
+hologram-default-subtitle: "&7右键点击交互"
+
+# 帮助消息
+help-header: "&6&l========== 岛屿NPC命令 =========="
+help-hide: "&e/islandnpc hide &7- 隐藏你的岛屿NPC"
+help-show: "&e/islandnpc show &7- 显示你的岛屿NPC"
+help-toggle: "&e/islandnpc toggle &7- 切换你的岛屿NPC可见性"
+help-move: "&e/islandnpc move &7- 将NPC移动到你的位置"
+help-fixall: "&e/islandnpc fixall &7- 修复在线玩家缺失的NPC（管理员）"
+help-cleanup: "&e/islandnpc cleanup &7- 清理已不存在岛屿的NPC（管理员）"
+help-create: "&e/islandnpc create &7- 创建岛屿NPC（管理员）"
+help-delete: "&e/islandnpc delete &7- 删除岛屿NPC（管理员）"
+help-reload: "&e/islandnpc reload &7- 重载配置并更新NPC（管理员）"
+help-help: "&e/islandnpc help &7- 显示此帮助信息"
+help-footer: "&6&l========================================"

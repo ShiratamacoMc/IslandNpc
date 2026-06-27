@@ -16,7 +16,11 @@ import org.bukkit.event.Listener;
 import java.util.UUID;
 
 /**
- * Skyllia 事件监听器
+ * Skyllia Event Listener
+ * 
+ * Listens to Skyllia island events and manages NPC creation/deletion.
+ * Uses island.getSpawnLocation() which prioritizes the spawn warp location
+ * over the island center, providing better spawn point accuracy.
  * 
  * @author magicbili
  */
@@ -62,15 +66,16 @@ public class SkylliaListener implements Listener {
                 }
                 
                 if (world != null) {
-                    Location center = island.getCenterLocation(world);
-                    if (center != null) {
-                        debug("岛屿中心位置: " + center);
-                        Location spawnLoc = calculateSpawnLocation(center);
-                        debug("NPC 生成位置: " + spawnLoc);
-                        boolean success = npcProvider.createNpc(islandId, spawnLoc);
+                    // Use getSpawnLocation which prioritizes spawn warp over center location
+                    Location spawnLocation = island.getSpawnLocation(world);
+                    if (spawnLocation != null) {
+                        debug("岛屿出生点位置: " + spawnLocation);
+                        Location npcLoc = calculateSpawnLocation(spawnLocation);
+                        debug("NPC 生成位置: " + npcLoc);
+                        boolean success = npcProvider.createNpc(islandId, npcLoc);
                         debug("NPC 创建结果: " + success);
                     } else {
-                        debug("岛屿中心位置为 null，无法创建 NPC");
+                        debug("岛屿出生点位置为 null，无法创建 NPC");
                     }
                 } else {
                     debug("找不到世界，无法创建 NPC");
@@ -101,10 +106,14 @@ public class SkylliaListener implements Listener {
     }
     
     /**
-     * 计算NPC生成位置
+     * Calculate NPC spawn location based on island spawn point
+     * Applies configured offsets and rotation to the base location
+     * 
+     * @param baseLocation The island spawn location (from getSpawnLocation)
+     * @return The calculated NPC spawn location with offsets applied
      */
-    private Location calculateSpawnLocation(Location islandCenter) {
-        if (islandCenter == null) return null;
+    private Location calculateSpawnLocation(Location baseLocation) {
+        if (baseLocation == null) return null;
 
         double offsetX = plugin.getConfigManager().getSpawnOffsetX();
         double offsetY = plugin.getConfigManager().getSpawnOffsetY();
@@ -112,10 +121,10 @@ public class SkylliaListener implements Listener {
         float yaw = plugin.getConfigManager().getNpcYaw();
         float pitch = plugin.getConfigManager().getNpcPitch();
 
-        Location spawnLoc = islandCenter.clone().add(offsetX, offsetY, offsetZ);
-        spawnLoc.setYaw(yaw);
-        spawnLoc.setPitch(pitch);
+        Location npcLoc = baseLocation.clone().add(offsetX, offsetY, offsetZ);
+        npcLoc.setYaw(yaw);
+        npcLoc.setPitch(pitch);
         
-        return spawnLoc;
+        return npcLoc;
     }
 }

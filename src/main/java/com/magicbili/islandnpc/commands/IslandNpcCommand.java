@@ -85,7 +85,7 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         
         // 检查NPC提供者是否可用
         if (plugin.getNpcProvider() == null) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNPC提供者未初始化，请联系管理员");
+            player.sendMessage(plugin.getConfigManager().getMessage("provider-not-initialized"));
             return true;
         }
         
@@ -125,7 +125,7 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         
         // 检查NPC提供者是否可用
         if (plugin.getNpcProvider() == null) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNPC提供者未初始化，请联系管理员");
+            player.sendMessage(plugin.getConfigManager().getMessage("provider-not-initialized"));
             return true;
         }
         
@@ -164,7 +164,7 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         }
         
         if (plugin.getNpcProvider() == null) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNPC提供者未初始化，请联系管理员");
+            player.sendMessage(plugin.getConfigManager().getMessage("provider-not-initialized"));
             return true;
         }
         
@@ -205,7 +205,7 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         Location newLocation = player.getLocation();
         
         if (plugin.getNpcProvider() == null) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNPC提供者未初始化，请联系管理员");
+            player.sendMessage(plugin.getConfigManager().getMessage("provider-not-initialized"));
             return true;
         }
         
@@ -244,13 +244,13 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         }
 
         if (plugin.getNpcProvider() == null || plugin.getIslandProvider() == null) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§c提供者未初始化，请联系管理员");
+            player.sendMessage(plugin.getConfigManager().getMessage("providers-not-initialized"));
             return true;
         }
         
         Location center = plugin.getIslandProvider().getIslandCenter(islandUUID);
         if (center == null) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§c无法获取岛屿中心位置");
+            player.sendMessage(plugin.getConfigManager().getMessage("island-center-not-found"));
             return true;
         }
         
@@ -289,7 +289,7 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         }
         
         if (plugin.getNpcProvider() == null) {
-            player.sendMessage(plugin.getConfigManager().getPrefix() + "§cNPC提供者未初始化，请联系管理员");
+            player.sendMessage(plugin.getConfigManager().getMessage("provider-not-initialized"));
             return true;
         }
         
@@ -305,7 +305,7 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         }
 
         if (plugin.getNpcProvider() == null || plugin.getIslandProvider() == null) {
-            sender.sendMessage(plugin.getConfigManager().getPrefix() + "§c提供者未初始化，请联系管理员");
+            sender.sendMessage(plugin.getConfigManager().getMessage("providers-not-initialized"));
             return true;
         }
 
@@ -350,36 +350,20 @@ public class IslandNpcCommand implements CommandExecutor, TabCompleter {
         }
 
         if (plugin.getNpcProvider() == null || plugin.getIslandProvider() == null) {
-            sender.sendMessage(plugin.getConfigManager().getPrefix() + "§c提供者未初始化，请联系管理员");
+            sender.sendMessage(plugin.getConfigManager().getMessage("providers-not-initialized"));
             return true;
         }
 
         sender.sendMessage(plugin.getConfigManager().getMessage("cleanup-checking"));
         
-        int deleted = 0;
-        int total = 0;
-        
-        // 获取所有已记录的岛屿NPC
-        java.util.Set<UUID> allNpcIslands = new java.util.HashSet<>(plugin.getNpcProvider().getAllIslandUUIDs());
-        total = allNpcIslands.size();
+        // 调用插件的清理方法
+        int[] result = plugin.cleanupOrphanedNpcs();
+        int total = result[0];
+        int deleted = result[1];
         
         if (total == 0) {
             sender.sendMessage(plugin.getConfigManager().getMessage("cleanup-no-npcs"));
             return true;
-        }
-        
-        // 检查每个岛屿是否仍然存在
-        for (UUID islandUUID : allNpcIslands) {
-            // 通过IslandProvider验证岛屿是否存在
-            Location center = plugin.getIslandProvider().getIslandCenter(islandUUID);
-            
-            if (center == null) {
-                // 岛屿不存在，删除NPC
-                if (plugin.getNpcProvider().deleteNpc(islandUUID)) {
-                    deleted++;
-                    plugin.getLogger().info("Cleaned up NPC for non-existent island: " + islandUUID);
-                }
-            }
         }
         
         sender.sendMessage(plugin.getConfigManager().getMessage("cleanup-complete", "total", String.valueOf(total), "deleted", String.valueOf(deleted)));
